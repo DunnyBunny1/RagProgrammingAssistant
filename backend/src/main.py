@@ -11,7 +11,7 @@ def hello():
 
 @app.get("/example")
 def example():
-    return {"message": "Welcome to an example page."}
+    return {"message": "Welcome to an example page"}
 
 
 @app.get("/health_check")

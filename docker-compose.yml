@@ -1,0 +1,44 @@
+# Create 2 services: One for the backend API and one for the frontend UI
+services:
+  backend:
+    build: ./backend # use the Dockerfile in `/backend` to build the image
+    container_name: backend-api # explicitly name the container for debugging purposes in Docker desktop
+    hostname: backend-api # hostname that can be used to address this container in the network
+    volumes: [ "./backend/src:/backend_code" ] # take the ./backend/src folder and plug it into the container at /backend_code
+    ports:
+      - 8000:8000
+    networks:
+      - bridge-network # connect the container to our bridge network
+    # Perform a health check every 10 sec to ensure our server is actually running and
+    # can service a simple request to the `/health_check` endpoint. If unsuccessful,
+    # docker will mark the container as unhealthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health_check" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  frontend:
+    build: ./frontend # use the Dockerfile in `/frontend` to build the image
+    container_name: streamlit-ui # explicitly name the container for debugging purposes in Docker desktop
+    hostname: streamlit-ui # hostname that can be used to address this container in the network
+    volumes: [ "./frontend/src:/frontend_code" ] # take the ./frontend/src folder and plug it into the container in folder named /frontend_code
+
+    # Expose port 8501 on the local host and map it to port 8501 in the container
+    ports:
+      - 8501:8501
+    # Connect the container to our bridge network
+    networks:
+      - bridge-network
+    # Only start our frontend container if the backend is healthy and ready to serve requests
+    depends_on:
+      backend:
+        condition: service_healthy
+
+# Create a bridge network that will enable all containers whose services
+# join the network to be able to communicate using their service
+# names as host names
+networks:
+  bridge-network:
+    driver: bridge
