@@ -1,0 +1,8 @@
+pandas
+matplotlib
+scipy
+xmltodict
+ipykernel
+pydantic
+duckdb
+load_dotenv
