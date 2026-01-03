@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import PlainTextResponse
 
 app = FastAPI()
 
-
+# TODO: Look into creating config with child class of pydantic `BaseSettings` configured w/ a `.env` file
 @app.get("/")
 def hello():
     return PlainTextResponse("Hello World from FastAPI")
@@ -23,7 +23,9 @@ def health_check():
     return PlainTextResponse("OK", status_code=200)
 
 
+
 if __name__ == "__main__":
+    # TODO: Test w/ moving to top level import
     import uvicorn
 
     # run our app, with hot reloading enabled, on port 8000

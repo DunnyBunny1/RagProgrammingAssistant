@@ -1,56 +1,45 @@
-from pydantic import BaseModel, field_validator
 from enum import Enum
 
+from sqlmodel import SQLModel, Field
 
-class StackOverflowTag(BaseModel):
-    """
-    Represents a StackOverflow Post tag
-    """
 
-    id: int  # the unique ID of the post tag
-    tag_name: str  # the name of the tag, ex: `java` for `#java`
+class StackOverflowTag(SQLModel, table=True):
+    """
+    Data model for a StackOverflow tag (hashtag)
+    Use `table=true` so that when we call `SQLModel.metadata.create_all(...)`, the sqlmodel library
+    will automatically generate and run SQL DDL that will set up this table.
+    NOTE:: We don't store the `tagId` of each tag, since the `tag_name` itself can be used as a unique identifier
+    on the StackOverflow Web API: https://stackoverflow.com/questions/tagged/{`tag_name`}
+    """
+    tag_name: str = Field(primary_key=True)  # the name of the hashtag (ex. "python"), used as the PK in our DB
     count: int  # the number of posts that include this tag
 
-    # make this class frozen (immutable) so that is hashable and can be used in sets / dicts
-    model_config = {"frozen": True}
+    __tablename__ = "stackoverflow_tags"  # the name assigned to the tags SQL table upon creation by the ORM engine
 
-    # TODO: Try uncommenting this out and see if the hash works
-    def __hash__(self):
-        return hash((self.id, self.tag_name, self.count))
 
-    def __eq__(self, other):
-        if isinstance(other, StackOverflowTag):
-            return (
-                    self.id == other.id
-                    and self.tag_name == other.tag_name
-                    and self.count == other.count
-            )
+class StackOverflowPost(SQLModel, table=True):
+    """
+    Data model for a StackOverflow post
+    """
+    # unique identifier of each post. since the primary key is an integer, sqlAlchemy wants us to
+    # explicitly specify that auto-increment behavior should
+    post_id: int = Field(primary_key=True, sa_column_kwargs={"autoincrement": False})
+    post_type: int = Field(index=True)  # the type of the post (question, answer, etc)
+    title: str  # the title of the post
+    body: str  # the content of the post
+    # the tags associated w/ this post
+    # format: a delimited string of tags separated by `|`, ex. `"|python|django|postgresql|...|"`
+    # use the empty string "" if there are no tags
+    tags: str = Field(index=True)
+    net_votes: int = Field(index=True)  # computed as `amount of upvotes` minus `amount of downvotes`
+
+    __tablename__ = "stackoverflow_posts"  # the name assigned to the tags SQL table upon creation by the ORM engine
 
 
 class PostType(Enum):
     """
     The different types that a stack overflow post can be
-    """
-
-    QUESTION = "question"
-    ANSWER = "answer"
-    OTHER = "other"
-
-
-class StackOverflowPost(BaseModel):
-    # Unique identifier of each post
-    id: int
-    # The type of the post (question, answer, etc)
-    post_type: PostType
-
-    @field_validator("post_type", mode="before")
-    def convert_to_post_type(value: int):
-        """
-        Convert the post type from its integer value
-        (used by Stack Overflow in their XML dumps) to its
-        application-specific value (Question, Answer, other)
-
-        According to the S3 Stack Overflow Data dumps, the format is
+      According to the S3 Stack Overflow Data dumps, the format is
         the following:
             PostTypeId Enum8(
                 'Question' = 1,
@@ -62,16 +51,7 @@ class StackOverflowPost(BaseModel):
                 'WikiPlaceholder' = 7,
                 'PrivilegeWiki' = 8
             )
-
-        Since we are only interested in questions / answers, use our custom
-        PostData Type enum
-        """
-
-        if not isinstance(value, int):
-            raise ValueError("Post type must be an int")
-        if value == 1:
-            return PostType.QUESTION
-        elif value == 2:
-            return PostType.ANSWER
-        else:
-            return PostType.OTHER
+    """
+    QUESTION = "question"
+    ANSWER = "answer"
+    OTHER = "other"

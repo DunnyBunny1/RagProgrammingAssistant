@@ -1,9 +1,9 @@
 import logging
 from pprint import pformat
-import requests
-from requests import Response
-import streamlit as st
 
+import requests
+import streamlit as st
+from requests import Response
 
 # Set up basic logging infrastructure
 logging.basicConfig(

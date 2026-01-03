@@ -1,3 +1,4 @@
+# TODO: Pin versions in here
 pandas
 matplotlib
 scipy
@@ -6,3 +7,5 @@ ipykernel
 pydantic
 duckdb
 load_dotenv
+sqlmodel
+duckdb-engine
