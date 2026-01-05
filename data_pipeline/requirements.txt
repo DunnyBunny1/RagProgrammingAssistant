@@ -6,6 +6,13 @@ xmltodict
 ipykernel
 pydantic
 duckdb
-load_dotenv
 sqlmodel
 duckdb-engine
+beautifulsoup4
+langchain-text-splitters
+torch
+tqdm
+transformers[torch]
+python-dotenv
+pyarrow
+sentence-transformers

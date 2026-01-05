@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Iterator, Tuple
 from xml.etree.ElementTree import Element
 from sqlmodel import SQLModel, create_engine, Session, text
 from data_pipeline.models import StackOverflowTag, StackOverflowPost, PostType
+from tqdm import tqdm
 
 """
 Pre-processes Stack Overflow's content dump of posts and hashtags (XML format) by parsing, validating, and filtering
@@ -140,12 +141,17 @@ def load_posts_to_duck_db(
     # `events=('end',)` means that the iterator will be "notified" each time an XML element is fully parsed
     posts_iterator: Iterator[Tuple[str, Element]] = ET.iterparse(POSTS_XML_PATH, events=('end',))
 
-    # scroll through each XML element as it is parsed
+    # scroll through each XML element as it is parsed and write to duckDB
+    # use the TQDM library to display a progress bar as we process posts
     event: str
     element: Element
-
-    # TODO: Consider adding TQDM here for progress bar
-    for event, element in posts_iterator:
+    for event, element in tqdm(
+            posts_iterator,
+            desc="Writing posts to DuckDB",  # label shown on the progress bar
+            unit=" posts",
+            total=60_000_000,  # estimated amount of posts in our raw XML dump
+            miniters=10_000,  # update display every 10k posts
+    ):
         # skip any elements that aren't` <row>` tags (ex. the root element)
         if element.tag != 'row':
             continue
@@ -164,9 +170,6 @@ def load_posts_to_duck_db(
             # validate the post against our data model
             post = StackOverflowPost.model_validate(post_dict)
             success_count += 1
-
-            if success_count % 100_000 == 0:
-                log.info(f"Processed {success_count} posts so far.")
 
             # skip any posts that have not reached our score threshold
             if post.net_votes < POST_NET_VOTES_THRESHOLD:
