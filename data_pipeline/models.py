@@ -1,6 +1,7 @@
+from pydantic import field_validator
+from sqlmodel import SQLModel, Field, Column, Integer
 from enum import Enum
-
-from sqlmodel import SQLModel, Field
+from typing import Optional
 
 
 class StackOverflowTag(SQLModel, table=True):
@@ -22,9 +23,9 @@ class StackOverflowPost(SQLModel, table=True):
     Data model for a StackOverflow post
     """
     # unique identifier of each post. since the primary key is an integer, sqlAlchemy wants us to
-    # explicitly specify that auto-increment behavior should
+    # explicitly specify that auto-increment behavior should not be used
     post_id: int = Field(primary_key=True, sa_column_kwargs={"autoincrement": False})
-    post_type: int = Field(index=True)  # the type of the post (question, answer, etc)
+    post_type: int = Field(index=True)  # corresponds to a PostType ordinal. options include questions, answers, etc
     title: str  # the title of the post
     body: str  # the content of the post
     # the tags associated w/ this post
@@ -32,6 +33,11 @@ class StackOverflowPost(SQLModel, table=True):
     # use the empty string "" if there are no tags
     tags: str = Field(index=True)
     net_votes: int = Field(index=True)  # computed as `amount of upvotes` minus `amount of downvotes`
+    # the post ID of this post's parent. Will be null for questions, non-null for answers
+    parent_id: Optional[int] = Field(
+        default=None,
+        index=True
+    )
 
     __tablename__ = "stackoverflow_posts"  # the name assigned to the tags SQL table upon creation by the ORM engine
 
@@ -52,6 +58,11 @@ class PostType(Enum):
                 'PrivilegeWiki' = 8
             )
     """
-    QUESTION = "question"
-    ANSWER = "answer"
-    OTHER = "other"
+    QUESTION = 1
+    ANSWER = 2
+    WIKI = 3
+    TAG_WIKI_EXCERPT = 4
+    TAG_WIKI = 5
+    MODERATOR_NOMINATION = 6
+    WIKI_PLACEHOLDER = 7
+    PRIVILEGE_WIKI = 8

@@ -5,7 +5,12 @@ from pathlib import Path
 from typing import List, Dict, Any, Iterator, Tuple
 from xml.etree.ElementTree import Element
 from sqlmodel import SQLModel, create_engine, Session, text
-from data_pipeline.models import StackOverflowTag, StackOverflowPost
+from data_pipeline.models import StackOverflowTag, StackOverflowPost, PostType
+
+"""
+Pre-processes Stack Overflow's content dump of posts and hashtags (XML format) by parsing, validating, and filtering
+each post / hashtag one-by-one, and then loading the dump data to DuckDB, where it can be analyzed using SQL  
+"""
 
 # path to the `data_pipeline/data` directory where we will store raw, semi-processed, and fully processed data
 DATA_DIR_PATH = Path(__file__).parent.parent / "data"
@@ -94,8 +99,6 @@ def load_tags_to_duck_db(session: Session):
                 log.error("Max failure count reached, aborting..")
                 exit(0)
 
-            continue
-
     log.info(
         f"After parsing tags, {success_count} / {success_count + failure_count} rows processed successfully\n"
     )
@@ -155,26 +158,31 @@ def load_posts_to_duck_db(
                 "body": element.get("Body", ""),
                 "tags": element.get("Tags", ""),
                 "net_votes": int(element.get("Score", 0)),
+                "parent_id": int(element.get("ParentId")) if element.get("ParentId") else None,
             }
 
             # validate the post against our data model
             post = StackOverflowPost.model_validate(post_dict)
             success_count += 1
 
+            if success_count % 100_000 == 0:
+                log.info(f"Processed {success_count} posts so far.")
+
             # skip any posts that have not reached our score threshold
             if post.net_votes < POST_NET_VOTES_THRESHOLD:
                 continue
 
-            current_batch.append(post) # add the post to the current batch
+            # skip any posts that are not questions or answers
+            if post.post_type not in [PostType.QUESTION.value, PostType.ANSWER.value]:
+                continue
+
+            current_batch.append(post)  # add the post to the current batch
 
             # when the batch is full, write the batches to duckDB and reset the current batch
             if len(current_batch) >= POST_BATCH_SIZE:
                 session.add_all(current_batch)
                 session.commit()
                 current_batch.clear()
-
-            if success_count % 100_000 == 0:
-                log.info(f"Processed {success_count} posts so far.")
 
         except Exception as e:
             log.warning(
