@@ -1,3 +1,8 @@
+"""
+Pre-processes Stack Overflow's content dump of posts and hashtags (XML format) by parsing, validating, and filtering
+each post / hashtag one-by-one, and then loading the dump data to DuckDB, where it can be analyzed using SQL
+"""
+
 import logging
 import sys
 import xml.etree.ElementTree as ET
@@ -7,11 +12,6 @@ from xml.etree.ElementTree import Element
 from sqlmodel import SQLModel, create_engine, Session, text
 from data_pipeline.models import StackOverflowTag, StackOverflowPost, PostType
 from tqdm import tqdm
-
-"""
-Pre-processes Stack Overflow's content dump of posts and hashtags (XML format) by parsing, validating, and filtering
-each post / hashtag one-by-one, and then loading the dump data to DuckDB, where it can be analyzed using SQL  
-"""
 
 # path to the `data_pipeline/data` directory where we will store raw, semi-processed, and fully processed data
 DATA_DIR_PATH = Path(__file__).parent.parent / "data"
