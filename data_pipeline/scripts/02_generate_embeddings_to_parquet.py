@@ -4,20 +4,20 @@ Reads posts, cleans and truncates text to fit model limits, generates
 384-dimensional embeddings, and saves to Parquet format.
 """
 
-import logging
 import sys
 import warnings
 from pathlib import Path
+
 import pandas as pd
 from bs4 import MarkupResemblesLocatorWarning
 from sentence_transformers import SentenceTransformer
-from sqlmodel import create_engine, Session, text
-from transformers import AutoTokenizer
+from sqlmodel import create_engine, Session
 from tqdm import tqdm
-import numpy as np
+from transformers import AutoTokenizer
 
-from data_pipeline.models import StackOverflowPost, PostType
+from data_pipeline.models import StackOverflowPost
 from data_pipeline.utils.html_cleaner import clean_html
+from data_pipeline.utils.logging_config import setup_logging
 
 # suppress the beautifulsoup warning about the text content - this warning pops up if the textual content
 # we are parsing resembles a filename / pathS since we are only parsing textual content from in-memory data structures,
@@ -40,20 +40,7 @@ DATA_DIR_PATH = Path(__file__).parent.parent / "data"
 DUCKDB_PATH: Path = DATA_DIR_PATH / "duckdb" / "stackoverflow_analysis.db"
 EMBEDDINGS_OUTPUT_PATH = DATA_DIR_PATH / "embeddings" / f"post_embeddings_{EMBEDDING_MODEL_NAME.replace('/', '-')}.parquet"
 
-# configure logging to write logs to an output file and std-out
-file_handler = logging.FileHandler(
-    filename=Path(__file__).parent.parent / "logs" / f"{Path(__file__).stem}.log",
-    mode="w",
-)
-stream_handler = logging.StreamHandler(stream=sys.stdout)
-logging.basicConfig(
-    handlers=[file_handler, stream_handler],
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-    force=True,
-)
-
-log = logging.getLogger(__name__)
+log = setup_logging(__file__)
 
 
 def count_tokens(text: str, tokenizer) -> int:

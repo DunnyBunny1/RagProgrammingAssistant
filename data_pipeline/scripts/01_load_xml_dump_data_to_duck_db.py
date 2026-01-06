@@ -3,15 +3,17 @@ Pre-processes Stack Overflow's content dump of posts and hashtags (XML format) b
 each post / hashtag one-by-one, and then loading the dump data to DuckDB, where it can be analyzed using SQL
 """
 
-import logging
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List, Dict, Any, Iterator, Tuple
 from xml.etree.ElementTree import Element
+
 from sqlmodel import SQLModel, create_engine, Session, text
-from data_pipeline.models import StackOverflowTag, StackOverflowPost, PostType
 from tqdm import tqdm
+
+from data_pipeline.models import StackOverflowTag, StackOverflowPost, PostType
+from data_pipeline.utils.logging_config import setup_logging
 
 # path to the `data_pipeline/data` directory where we will store raw, semi-processed, and fully processed data
 DATA_DIR_PATH = Path(__file__).parent.parent / "data"
@@ -23,22 +25,7 @@ POSTS_XML_PATH: Path = DATA_DIR_PATH / "raw_xml_data" / "posts.xml"
 # path to our duckDB SQL database containing our SQL files
 DUCKDB_PATH: Path = DATA_DIR_PATH / "duckdb" / "stackoverflow_analysis.db"
 
-# Create handlers to write output to a log file & std-err
-file_handler = logging.FileHandler(
-    filename=Path(__file__).parent.parent / "logs" / f"{Path(__file__).stem}.log",
-    mode="w",
-)
-stream_handler = logging.StreamHandler(stream=sys.stdout)
-
-# Setup a logger w/ our handlers
-logging.basicConfig(
-    handlers=[file_handler, stream_handler],
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-    force=True,
-)
-
-log = logging.getLogger(__name__)
+log = setup_logging(__file__)
 
 # The score threshold for the top 250k posts (since we are only allowed 2 GB (~250-300k vectors)
 # of cloud storage in PineconeDB free tier). computed in `data_exploration.ipynb`

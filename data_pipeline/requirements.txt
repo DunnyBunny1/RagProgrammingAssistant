@@ -16,3 +16,4 @@ transformers[torch]
 python-dotenv
 pyarrow
 sentence-transformers
+pinecone
