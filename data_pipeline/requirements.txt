@@ -1,19 +1,15 @@
-# TODO: Pin versions in here
 pandas
-matplotlib
-scipy
 xmltodict
-ipykernel
-pydantic
 duckdb
-sqlmodel
 duckdb-engine
-beautifulsoup4
 langchain-text-splitters
-torch
+beautifulsoup4
 tqdm
-transformers[torch]
 python-dotenv
-pyarrow
+transformers[torch]
 sentence-transformers
 pinecone
+sqlmodel
+jupyterlab
+ipykernel
+-e ./shared

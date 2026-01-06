@@ -1,10 +1,13 @@
 # Create 2 services: One for the backend API and one for the frontend UI
 services:
   backend:
-    build: ./backend # use the Dockerfile in `/backend` to build the image
+    build:
+      context: . # set the context to the project root, so that docker can access the shared/ folder during build
+      dockerfile: backend/Dockerfile # use the Dockerfile in `/backend` to build the image
     container_name: backend-api # explicitly name the container for debugging purposes in Docker desktop
     hostname: backend-api # hostname that can be used to address this container in the network
-    volumes: [ "./backend/src:/backend_code" ] # take the ./backend/src folder and plug it into the container at /backend_code
+    # create a connection for between the project root (`.`) to the container at `/app`, allowing live code changes
+    volumes: [ ".:/app:ro" ]
     ports:
       - 8000:8000
     networks:
@@ -20,10 +23,13 @@ services:
       start_period: 5s
 
   frontend:
-    build: ./frontend # use the Dockerfile in `/frontend` to build the image
+    build:
+      context: . # set the context to the project root, so that docker can access the shared/ folder during build
+      dockerfile: frontend/Dockerfile # use the Dockerfile in `/frontend` to build the image
     container_name: streamlit-ui # explicitly name the container for debugging purposes in Docker desktop
     hostname: streamlit-ui # hostname that can be used to address this container in the network
-    volumes: [ "./frontend/src:/frontend_code" ] # take the ./frontend/src folder and plug it into the container in folder named /frontend_code
+    # create a connection for between the project root (`.`) to the container at `/app`, allowing live code changes
+    volumes: [ ".:/app:ro" ]
 
     # Expose port 8501 on the local host and map it to port 8501 in the container
     ports:

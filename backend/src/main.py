@@ -11,7 +11,7 @@ def hello():
 
 @app.get("/example")
 def example():
-    return {"message": "Welcome to an example page"}
+    return {"message": "Welcome to an example page!"}
 
 
 @app.get("/health_check")
@@ -25,9 +25,7 @@ def health_check():
 
 
 if __name__ == "__main__":
-    # TODO: Test w/ moving to top level import
     import uvicorn
-
     # run our app, with hot reloading enabled, on port 8000
     # listen on all network interfaces (0.0.0.0) so that the server is accessible from our host machine
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -12,8 +12,8 @@ from xml.etree.ElementTree import Element
 from sqlmodel import SQLModel, create_engine, Session, text
 from tqdm import tqdm
 
-from data_pipeline.models import StackOverflowTag, StackOverflowPost, PostType
-from data_pipeline.utils.logging_config import setup_logging
+from ragoverflow_shared.models import StackOverflowTag, StackOverflowPost, PostType
+from ragoverflow_shared.logging_config import setup_logging
 
 # path to the `data_pipeline/data` directory where we will store raw, semi-processed, and fully processed data
 DATA_DIR_PATH = Path(__file__).parent.parent / "data"

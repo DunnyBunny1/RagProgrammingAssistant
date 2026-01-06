@@ -15,8 +15,8 @@ from dotenv import load_dotenv
 from pinecone import Pinecone
 from tqdm import tqdm
 
-from data_pipeline.models import PineconeVector
-from data_pipeline.utils.logging_config import setup_logging
+from ragoverflow_shared.models import PineconeVector
+from ragoverflow_shared.logging_config import setup_logging
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent.parent / ".env", verbose=True)
 

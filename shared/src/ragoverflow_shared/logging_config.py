@@ -15,7 +15,7 @@ def setup_logging(module_path: str) -> logging.Logger:
 
     # Create handlers to write output to a log file & std-err
     file_handler = logging.FileHandler(
-        filename=Path(__file__).parent.parent / "logs" / f"{script_name}.log",
+        filename=Path(__file__).parent.parent.parent.parent / "logs" / f"{script_name}.log",
         mode="w",
     )
     stream_handler = logging.StreamHandler(stream=sys.stdout)
