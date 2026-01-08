@@ -12,6 +12,9 @@ services:
       - 8000:8000
     networks:
       - bridge-network # connect the container to our bridge network
+    environment: # set environment vars from our .env file
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
     # Perform a health check every 10 sec to ensure our server is actually running and
     # can service a simple request to the `/health_check` endpoint. If unsuccessful,
     # docker will mark the container as unhealthy

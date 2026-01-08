@@ -1,3 +1,12 @@
 fastapi
 uvicorn
+duckdb
+sqlmodel
+duckdb-engine
+sentence-transformers
+langchain
+langchain-pinecone
+langchain-huggingface
+pydantic-settings
 -e ./shared
+

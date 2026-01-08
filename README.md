@@ -23,7 +23,7 @@ The application will be available at:
 
 ### Local Development Setup
 
-For local development without Docker:
+For local development without Docker: (using Python 3.12)
 ```bash
 # Install dependencies (from project root)
 pip install -r backend/requirements.txt
@@ -31,7 +31,7 @@ pip install -r frontend/requirements.txt
 
 # Run backend
 cd backend
-python main.py 
+python server.py 
 
 # Run frontend (separate terminal)
 cd frontend
