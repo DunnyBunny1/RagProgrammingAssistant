@@ -42,52 +42,6 @@ class StackOverflowPost(SQLModel, table=True):
     __tablename__ = "stackoverflow_posts"  # the name assigned to the tags SQL table upon creation by the ORM engine
 
 
-class PineconeVector(BaseModel):
-    """
-    Pydantic data model for a vector to be uploaded to PineconeDB via the pinecone library
-
-    Pinecone expects vectors in this format:
-    - id: unique string identifier
-    - values: list of floats (the embedding)
-    - metadata: dict of filterable attributes
-    """
-    id: str = PydanticField(description="Unique vector ID (post_id as string)")
-    values: List[float] = PydanticField(description="384-dimensional embedding from BGE model")
-    metadata: VectorMetadata = PydanticField(description="Filterable metadata stored with vector")
-
-    @field_validator('values')
-    @classmethod
-    def validate_embedding_dimension(cls, v: List[float]) -> List[float]:
-        """Ensure embedding has correct dimensionality (384 for BGE-small)"""
-        if len(v) != 384:
-            raise ValueError(f"Embedding must be 384-dimensional, got {len(v)}")
-        return v
-
-    @classmethod
-    def from_dataframe_row(cls, row) -> PineconeVector:
-        """
-        Factory method to create a PineconeVector from a DataFrame row.
-
-        :param row: pandas DataFrame row with post_id, embedding, post_type, net_votes, tags
-        :return: PineconeVector ready for upload
-        """
-        return cls(
-            id=str(row['post_id']),
-            values=row['embedding'],
-            metadata=VectorMetadata(
-                post_type=int(row['post_type']),
-                net_votes=int(row['net_votes']),
-                tags=row['tags'] if row['tags'] else ''
-            )
-        )
-
-    def to_pinecone_format(self) -> Tuple[str, List[float], Dict[str, Any]]:
-        """
-        Convert to Pinecone's expected tuple format: (id, values, metadata_dict)
-        """
-        return self.id, self.values, self.metadata.model_dump()
-
-
 class VectorMetadata(BaseModel):
     """
     Metadata stored alongside each vector in Pinecone.
@@ -126,6 +80,52 @@ class VectorMetadata(BaseModel):
 
         # Fallback: if no pipes found (malformed data), return an empty string
         return ""
+
+
+class PineconeVector(BaseModel):
+    """
+    Pydantic data model for a vector to be uploaded to PineconeDB via the pinecone library
+
+    Pinecone expects vectors in this format:
+    - id: unique string identifier
+    - values: list of floats (the embedding)
+    - metadata: dict of filterable attributes
+    """
+    id: str = PydanticField(description="Unique vector ID (post_id as string)")
+    values: List[float] = PydanticField(description="384-dimensional embedding from BGE model")
+    metadata: VectorMetadata = PydanticField(description="Filterable metadata stored with vector")
+
+    @field_validator('values')
+    @classmethod
+    def validate_embedding_dimension(cls, v: List[float]) -> List[float]:
+        """Ensure embedding has correct dimensionality (384 for BGE-small)"""
+        if len(v) != 384:
+            raise ValueError(f"Embedding must be 384-dimensional, got {len(v)}")
+        return v
+
+    @classmethod
+    def from_dataframe_row(cls, row) -> 'PineconeVector':
+        """
+        Factory method to create a PineconeVector from a DataFrame row.
+
+        :param row: pandas DataFrame row with post_id, embedding, post_type, net_votes, tags
+        :return: PineconeVector ready for upload
+        """
+        return cls(
+            id=str(row['post_id']),
+            values=row['embedding'],
+            metadata=VectorMetadata(
+                post_type=int(row['post_type']),
+                net_votes=int(row['net_votes']),
+                tags=row['tags'] if row['tags'] else ''
+            )
+        )
+
+    def to_pinecone_format(self) -> Tuple[str, List[float], Dict[str, Any]]:
+        """
+        Convert to Pinecone's expected tuple format: (id, values, metadata_dict)
+        """
+        return self.id, self.values, self.metadata.model_dump()
 
 
 class PostType(Enum):

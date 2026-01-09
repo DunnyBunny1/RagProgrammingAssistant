@@ -1,30 +1,47 @@
-"""
-Test semantic search against Pinecone vector database.
-Takes a natural language query, embeds it, searches Pinecone for similar posts,
-and fetches full content from DuckDB.
-"""
 from typing import List, Dict, Any
 import logging
 from pinecone import Pinecone
-
-from ..config import get_config, Config
+from pydantic import BaseModel, field_validator, Field, model_validator
+from ..config import Config
 from sentence_transformers import SentenceTransformer
-from .models import SemanticSearchResult
 
 log = logging.getLogger(__name__)
 
 
+class SemanticSearchResult(BaseModel):
+    """
+    Represents search results for a scored semantic search performed against our cloud pineconeDB index
+    """
+    post_id: int = Field(alias="id")
+    similarity_score: float = Field(alias="score")
+    net_votes: int
+    tags: str
+    post_type: int
+
+    @classmethod
+    def from_search_result(cls, search_result_match: Dict[str, Any]) -> 'SemanticSearchResult':
+        """
+        Factory method to construct from Pinecone match format.
+        Flattens the nested metadata structure.
+        """
+        return cls(
+            id=search_result_match['id'],
+            score=search_result_match['score'],
+            net_votes=search_result_match['metadata']['net_votes'],
+            tags=search_result_match['metadata']['tags'],
+            post_type=search_result_match['metadata']['post_type']
+        )
+
+
 class SemanticSearchEngine:
     """
-    Semantic search engine for Stack Overflow posts.
+    Semantic search engine for Stack Overflow posts. Serves as a retriever that extracts relevant information from
+    the Pinecone cloud pineconeDB index.
     """
 
-    def __init__(self):
+    def __init__(self, config: Config):
         """TODO: Add docstring"""
         log.info("Initializing semantic search engine...")
-
-        # load our config
-        config: Config = get_config()
 
         # Load embedding model - this will be used to embed text for similarity serach
         log.info(f"Loading embedding model: {config.embedding_model_name}...")
@@ -47,20 +64,23 @@ class SemanticSearchEngine:
         embedding = self.embedding_model.encode(query)
         return embedding.tolist()
 
-    def semantic_search_similar_posts(
+    def search_similar_posts(
             self,
             query: str,
-            top_k: int,
-            filter_dict: Dict[str, Any]
+            top_k: int = 3,
+            metadata_filter_dict: Dict[str, Any] = None
     ) -> List[SemanticSearchResult]:
         """
         Search for posts semantically similar to the query.
 
         :param query: Natural language search query
         :param top_k: Number of results to return
-        :param filter_dict: Dictionary of arguments to filter on vector metadata
+        :param metadata_filter_dict: Dictionary of arguments to filter on vector metadata
         :return: List of matching documents, as a List[ScoredDocument]
         """
+        if not metadata_filter_dict:  # if no filter dict is provided, use an empty filter
+            metadata_filter_dict = {}
+
         log.info(f"Performing semantic search for top {top_k} similar posts...")
 
         # embed the query, converting it from natural language (text) to an embedding
@@ -71,7 +91,7 @@ class SemanticSearchEngine:
             vector=query_embedding,
             top_k=top_k,
             include_metadata=True,
-            filter=filter_dict
+            filter=metadata_filter_dict
         ).get("matches", [])
 
         log.info(f"Found {len(search_results)} similar posts\n")

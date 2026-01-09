@@ -15,9 +15,12 @@ class Config(BaseSettings):
     pinecone_api_key: str
     pinecone_index_name: str
 
+    # config to connect to duckDB
+    # TODO: Consider moving data folder to top level
+    duckdb_uri: str = "duckdb:////app/data_pipeline/data/duckdb/stackoverflow_analysis.db"
+
     # LLM config
-    # anthropic_api_key: str
-    # open_ai_api_key: str
+    anthropic_api_key: str
     # llm_models = ["claude-3-5-haiku-20241022", "gpt4-o-mini", ]
 
     # Embedding model
@@ -27,11 +30,3 @@ class Config(BaseSettings):
     class Config:
         env_file = Path(__file__).parent.parent.parent / ".env"
         env_file_encoding = "utf-8"
-
-
-@lru_cache()
-def get_config() -> Config:
-    """
-    Returns a cached config object.
-    """
-    return Config()

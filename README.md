@@ -11,7 +11,7 @@ cd ragoverflow
 
 # 2. Set up environment variables
 cp .env.template .env
-# Edit .env with your Pinecone credentials
+# Edit .env with your credentials / api keys 
 
 # 3. Run the application
 docker-compose up --build
@@ -20,6 +20,7 @@ docker-compose up --build
 The application will be available at:
 - **Frontend:** http://localhost:8501
 - **Backend API:** http://localhost:8000
+- API documentation available at  http://localhost:8000/docs 
 
 ### Local Development Setup
 

@@ -16,7 +16,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from ragoverflow_shared.models import StackOverflowPost
-from ragoverflow_shared.html_cleaner import clean_html
+from ragoverflow_shared.html_cleaner import clean_and_combine_text
 from ragoverflow_shared.logging_config import setup_logging
 
 # suppress the beautifulsoup warning about the text content - this warning pops up if the textual content
@@ -106,13 +106,6 @@ def prepare_post_data_for_embeddings(df: pd.DataFrame, tokenizer) -> pd.DataFram
     :return: DataFrame with prepared_content and token_count columns
     """
     log.info("Preparing posts for embedding...")
-
-    def clean_and_combine_text(row):
-        # combine the cleaned post title (if present) with the cleaned post body 
-        # for posts that do not have a title, just clean the body 
-        title = clean_html(row.get('title', ''))
-        body = clean_html(row.get('body', ''))
-        return f"{title}\n\n{body}" if title else body
 
     log.info("Cleaning HTML and combining text on all posts...")
     df['full_cleaned_content'] = df.apply(clean_and_combine_text, axis=1)

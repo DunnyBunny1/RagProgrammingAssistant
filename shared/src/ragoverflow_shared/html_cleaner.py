@@ -27,3 +27,11 @@ def clean_html(html_text: str) -> str:
     text = re.sub(r'\n\s*\n+', '\n\n', text)  # Replace mulitplme newlines with a double newline
 
     return text.strip()  # remove any leading / trailing whitespace
+
+
+def clean_and_combine_text(post):
+    # combine the cleaned post title (if present) with the cleaned post body
+    # for posts that do not have a title, just clean the body
+    title = clean_html(post.get('title', ''))
+    body = clean_html(post.get('body', ''))
+    return f"{title}\n\n{body}" if title else body

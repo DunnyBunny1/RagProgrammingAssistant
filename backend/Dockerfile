@@ -16,8 +16,5 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 # expose port 8000 (default fastAPI/Uvicorn port) from the container
 EXPOSE 8000
 
-# set the working directory to the backend folder
-WORKDIR /app/backend/src
-
 # run our FastAPI "app" (inside the "main" python module), creating an HTTP server with hot reloads
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
