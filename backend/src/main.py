@@ -8,6 +8,7 @@ from ragoverflow_shared.logging_config import setup_logging
 from contextlib import asynccontextmanager
 from sqlmodel import SQLModel, create_engine, Session, text
 from backend.src.routes.query import router as query_router
+from backend.src.routes.health_check import router as health_check_router
 
 # Set up logging for this application
 log = setup_logging(__name__)
@@ -28,7 +29,7 @@ async def lifespan(app: FastAPI):
     app.state.semantic_search_engine = SemanticSearchEngine(config=config)
 
     # initialize our connection to our LLM
-    app.state.llm_client = LlmClient(api_key=config.anthropic_api_key)
+    app.state.llm_client = LlmClient(api_key=config.anthropic_api_key, model=config.llm_models[0])
 
     # create a duckDB session and save it to app state
     engine = create_engine(config.duckdb_uri)
@@ -51,7 +52,8 @@ app = FastAPI(
 )
 
 # Add our routers to our app
-app.include_router(query_router)
+for router in [query_router, health_check_router]:
+    app.include_router(router)
 
 
 @app.get("/")

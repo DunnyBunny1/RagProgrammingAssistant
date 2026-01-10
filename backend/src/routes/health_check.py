@@ -1,8 +1,10 @@
-from backend.src.main import app
+from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
+router = APIRouter()
 
-@app.get("/health_check")
+
+@router.get("/health_check")
 def health_check():
     """
     Health check to ensure the server is running successfully. Returns the message "OK"

@@ -1,4 +1,6 @@
 """Application configuration."""
+from typing import List
+
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 from pathlib import Path
@@ -21,7 +23,7 @@ class Config(BaseSettings):
 
     # LLM config
     anthropic_api_key: str
-    # llm_models = ["claude-3-5-haiku-20241022", "gpt4-o-mini", ]
+    llm_models : List[str] = ["claude-haiku-4-5", "claude-sonnet-4-5"]
 
     # Embedding model
     embedding_model_name: str = "BAAI/bge-small-en-v1.5"

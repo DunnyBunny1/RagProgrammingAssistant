@@ -1,10 +1,11 @@
 from fastapi import Depends, HTTPException, APIRouter, Request
-from typing import List
+from typing import List, Dict, Any
 import logging
 
 from sqlmodel import Session, select, text
 
 from backend.src.rag.generator import LlmClient
+from backend.src.schemas.requests import QueryRequestBody
 from backend.src.schemas.responses import QueryResponse
 from backend.src.rag.retriever import SemanticSearchEngine, SemanticSearchResult
 from backend.src.schemas.responses import SourceReference
@@ -15,10 +16,10 @@ log = logging.getLogger(__name__)
 
 router = APIRouter()
 
-
+# TODO: Consider refactoring this to "stream" the LLM response back to the frontend
 @router.post("/query", response_model=QueryResponse)
 async def query(
-        user_query: str,
+        request_body: QueryRequestBody,
         request: Request
 ) -> QueryResponse:
     """
@@ -26,11 +27,12 @@ async def query(
     TODO: Look into python equivalent of nodejs api-doc library here
     """
     try:
+        user_query = request_body.user_query
         duckdb_session: Session = request.app.state.duckdb_session
         semantic_search_engine: SemanticSearchEngine = request.app.state.semantic_search_engine
         llm_client: LlmClient = request.app.state.llm_client
 
-        log.info(f"User queyr: '{user_query}')")
+        log.info(f"User query: '{user_query}'")
 
         # RAG step 1: Information retrieval - launch a semantic search for similar stack overflow posts to the query
         # we want to find the question with the highest semantic similarity
@@ -92,11 +94,13 @@ def build_llm_context(
             log.error(f"Unable to find duckDB post with {post_id=} that is present in the vector database")
             raise HTTPException(status_code=500, detail="Internal server error")
 
+        # Convert the post to a dict
+        post_dict: Dict[str, Any] = dict(post._mapping)
         # Get cleaned content for this post
-        content = clean_and_combine_text(post)
+        content = clean_and_combine_text(post_dict)
 
         # If it's a question, try to add the top answer
-        if post['post_type'] == PostType.QUESTION.value:
+        if post_dict['post_type'] == PostType.QUESTION.value:
             answer_query = text(f"""
                    SELECT body
                    FROM stackoverflow_posts
@@ -112,11 +116,11 @@ def build_llm_context(
                 content += f"\n\n{answer_content}"
 
         # If it's an answer, try to add the parent question
-        elif post['post_type'] == PostType.ANSWER.value and post.get('parent_id', ''):
+        elif post_dict['post_type'] == PostType.ANSWER.value and post_dict.get('parent_id', ''):
             question_query = text(f"""
                    SELECT title, body
                    FROM stackoverflow_posts
-                   WHERE post_id = {post['parent_id']}
+                   WHERE post_id = {post_dict['parent_id']}
                      AND post_type = {PostType.QUESTION.value}
                """)
 
@@ -127,7 +131,7 @@ def build_llm_context(
                     'body': question.body
                 })
                 # Store question info for source formatting
-                post['question_title'] = question.title
+                post_dict['question_title'] = question.title
                 # Prepend question before answer
                 content = f"{question_content}\n\n{content}"
 

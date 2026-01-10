@@ -7,14 +7,15 @@ services:
     container_name: backend-api # explicitly name the container for debugging purposes in Docker desktop
     hostname: backend-api # hostname that can be used to address this container in the network
     # create a connection for between the project root (`.`) to the container at `/app`, allowing live code changes
-    volumes: [ ".:/app:ro" ]
+    volumes: [ ".:/app" ]
     ports:
       - 8000:8000
     networks:
-      - bridge-network # connect the container to our bridge network
+      - bridge-network # connec´ the container to our bridge network
     environment: # set environment vars from our .env file
       - PINECONE_API_KEY=${PINECONE_API_KEY}
       - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     # Perform a health check every 10 sec to ensure our server is actually running and
     # can service a simple request to the `/health_check` endpoint. If unsuccessful,
     # docker will mark the container as unhealthy

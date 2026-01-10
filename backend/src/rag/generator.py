@@ -12,12 +12,12 @@ class LlmClient:
     Uses LangChain to handle the API calls.
     """
 
-    def __init__(self, api_key: str, model: str = "claude-sonnet-4-20250514"):
+    def __init__(self, api_key: str, model: str):
         """
         Initialize the LLM client.
 
         :param api_key: Anthropic API key
-        :param model: Claude model to use (default: Claude Sonnet 4)
+        :param model: Claude model to use
         """
         self.llm = ChatAnthropic(
             api_key=api_key,
