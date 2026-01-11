@@ -1,4 +1,3 @@
-from ragoverflow_shared.logging_config import setup_logging
 import streamlit as st
 import requests
 import json
@@ -8,7 +7,7 @@ BACKEND_URL = "http://backend-api:8000"
 st.set_page_config(
     page_title="RagOverflow",
     page_icon="🔍",
-    layout="centered"
+    layout="wide"
 )
 
 # Title
@@ -40,20 +39,29 @@ if st.button("Search", type="primary"):
                 if response.status_code == 200:
                     data = response.json()
 
-                    # Display answer
-                    st.markdown("### Answer")
-                    st.markdown(data["llm_response"])
+                    # Create two columns: 2:1 ratio (answer on left, sources on right)
+                    col_answer, col_sources = st.columns([2, 1])
 
-                    # Display sources
-                    st.markdown("### Sources")
-                    for i, source in enumerate(data["sources"], start=1):
-                        url = source["url"]
-                        score = source["cosine_similarity_score"]
+                    # Left column: Answer in a container with border
+                    with col_answer:
+                        st.markdown("### Answer")
+                        # Use container to visually separate the answer
+                        with st.container(border=True):
+                            st.markdown(data["llm_response"])
 
-                        # Format similarity as percentage
-                        similarity_pct = f"{score * 100:.1f}%"
+                    # Right column: Sources
+                    with col_sources:
+                        st.markdown("### Sources")
+                        for i, source in enumerate(data["sources"], start=1):
+                            url = source["url"]
+                            score = source["cosine_similarity_score"]
 
-                        st.markdown(f"{i}. [{url}]({url}) - {similarity_pct} match")
+                            # Format similarity as percentage
+                            similarity_pct = f"{score * 100:.1f}%"
+
+                            st.markdown(f"**{i}.** [{url}]({url})")
+                            st.markdown(f"🎯 {similarity_pct} match")
+                            st.markdown("---")  # Divider between sources
 
                 else:
                     st.error(f"Error: {response.status_code} - {response.text}")
