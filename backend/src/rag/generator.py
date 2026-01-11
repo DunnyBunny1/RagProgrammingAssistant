@@ -1,6 +1,7 @@
+import logging
+
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class LlmClient:
         self.llm = ChatAnthropic(
             api_key=api_key,
             model=model,
-            temperature=0.0,  # TODO: Consider extracting to config
+            temperature=0.0,  # TODO: Consider extracting temperature to config
         )
 
         self.system_prompt = """You are a helpful programming assistant that answers questions using your knowledge and Stack Overflow content.
@@ -36,7 +37,6 @@ class LlmClient:
         - Include code examples when relevant
         - If you use information from the context, it's implicitly cited (user knows the sources)
         - Keep explanations clear and simple
-        
         """
 
     def generate_answer(self, query: str, context: str) -> str:
@@ -68,7 +68,7 @@ class LlmClient:
         log.info(f"Calling LLM with query: '{query}'")
         response = self.llm.invoke(messages)
 
-        # Extract the text content
+        # Extract the text content of the response
         answer = response.content
 
         log.info(f"Generated answer ({len(answer)} chars)")

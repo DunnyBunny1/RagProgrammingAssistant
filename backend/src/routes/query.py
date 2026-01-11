@@ -1,20 +1,21 @@
-from fastapi import Depends, HTTPException, APIRouter, Request
-from typing import List, Dict, Any
 import logging
+from typing import List, Dict, Any
 
-from sqlmodel import Session, select, text
+from fastapi import HTTPException, APIRouter, Request
+from sqlmodel import Session, text
 
 from backend.src.rag.generator import LlmClient
+from backend.src.rag.retriever import SemanticSearchEngine, SemanticSearchResult
 from backend.src.schemas.requests import QueryRequestBody
 from backend.src.schemas.responses import QueryResponse
-from backend.src.rag.retriever import SemanticSearchEngine, SemanticSearchResult
 from backend.src.schemas.responses import SourceReference
-from ragoverflow_shared.models import PostType
 from ragoverflow_shared.html_cleaner import clean_and_combine_text
+from ragoverflow_shared.models import PostType
 
 log = logging.getLogger(__name__)
 
 router = APIRouter()
+
 
 # TODO: Consider refactoring this to "stream" the LLM response back to the frontend
 @router.post("/query", response_model=QueryResponse)
@@ -71,13 +72,8 @@ def build_llm_context(
         post_ids: List[int]
 ) -> str:
     """
-    Fetch posts and build context as just cleaned combined text.
+    Fetch posts and build context for an LLM prompt
     """
-    # TODO: Fix these coments
-    # for the matching posts, fetch the post content from DuckDB
-    # for each search result, look up the question ID in duckDB to find the top answer (answer with the most net votes)
-    # Use the answer text content as context
-    # Use the answer's POST ID to derive the source URL
     context_parts = []
 
     for post_id in post_ids:
@@ -137,7 +133,7 @@ def build_llm_context(
 
         context_parts.append(content)
 
-    # Just join all the cleaned content together
+    # join all the cleaned content together
     context = "\n\n---\n\n".join(context_parts)
 
     return context

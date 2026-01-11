@@ -1,14 +1,15 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
+from sqlmodel import create_engine, Session
 
 from backend.src.config import Config
 from backend.src.rag.generator import LlmClient
 from backend.src.rag.retriever import SemanticSearchEngine
-from ragoverflow_shared.logging_config import setup_logging
-from contextlib import asynccontextmanager
-from sqlmodel import SQLModel, create_engine, Session, text
-from backend.src.routes.query import router as query_router
 from backend.src.routes.health_check import router as health_check_router
+from backend.src.routes.query import router as query_router
+from ragoverflow_shared.logging_config import setup_logging
 
 # Set up logging for this application
 log = setup_logging(__name__)
@@ -28,7 +29,7 @@ async def lifespan(app: FastAPI):
     # initialize our app's semantic search engine
     app.state.semantic_search_engine = SemanticSearchEngine(config=config)
 
-    # initialize our connection to our LLM
+    # initialize our connection to our LLM - by default use the first model name in the config list of LLMs
     app.state.llm_client = LlmClient(api_key=config.anthropic_api_key, model=config.llm_models[0])
 
     # create a duckDB session and save it to app state

@@ -1,9 +1,8 @@
 """Application configuration."""
+from pathlib import Path
 from typing import List
 
 from pydantic_settings import BaseSettings
-from functools import lru_cache
-from pathlib import Path
 
 
 class Config(BaseSettings):
@@ -22,7 +21,8 @@ class Config(BaseSettings):
 
     # LLM config
     anthropic_api_key: str
-    llm_models : List[str] = ["claude-haiku-4-5", "claude-sonnet-4-5"]
+    # TODO: Consider adding /list-models API route to display the list of available models
+    llm_models: List[str] = ["claude-haiku-4-5", "claude-sonnet-4-5"]
 
     # Embedding model
     embedding_model_name: str = "BAAI/bge-small-en-v1.5"

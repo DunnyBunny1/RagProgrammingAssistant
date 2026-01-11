@@ -15,9 +15,9 @@ from sqlmodel import create_engine, Session
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-from ragoverflow_shared.models import StackOverflowPost
 from ragoverflow_shared.html_cleaner import clean_and_combine_text
 from ragoverflow_shared.logging_config import setup_logging
+from ragoverflow_shared.models import StackOverflowPost
 
 # suppress the beautifulsoup warning about the text content - this warning pops up if the textual content
 # we are parsing resembles a filename / pathS since we are only parsing textual content from in-memory data structures,

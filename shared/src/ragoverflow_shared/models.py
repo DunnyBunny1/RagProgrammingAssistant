@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Optional, Tuple, Dict, Any, List
-from sqlmodel import SQLModel, Field as SqlField
+
 from pydantic import BaseModel, field_validator, Field as PydanticField
+from sqlmodel import SQLModel, Field as SqlField
 
 
 class StackOverflowTag(SQLModel, table=True):

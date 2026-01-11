@@ -1,9 +1,11 @@
-from typing import List, Dict, Any
 import logging
+from typing import List, Dict, Any
+
 from pinecone import Pinecone
-from pydantic import BaseModel, field_validator, Field, model_validator
-from ..config import Config
+from pydantic import BaseModel, Field
 from sentence_transformers import SentenceTransformer
+
+from ..config import Config
 
 log = logging.getLogger(__name__)
 

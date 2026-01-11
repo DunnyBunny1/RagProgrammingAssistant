@@ -1,6 +1,5 @@
-import streamlit as st
 import requests
-import json
+import streamlit as st
 
 BACKEND_URL = "http://backend-api:8000"
 
