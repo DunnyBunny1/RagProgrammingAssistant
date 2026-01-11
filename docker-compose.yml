@@ -33,7 +33,7 @@ services:
     container_name: streamlit-ui # explicitly name the container for debugging purposes in Docker desktop
     hostname: streamlit-ui # hostname that can be used to address this container in the network
     # create a connection for between the project root (`.`) to the container at `/app`, allowing live code changes
-    volumes: [ ".:/app:ro" ]
+    volumes: [ ".:/app" ]
 
     # Expose port 8501 on the local host and map it to port 8501 in the container
     ports:

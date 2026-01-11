@@ -18,7 +18,6 @@ class Config(BaseSettings):
     pinecone_index_name: str
 
     # config to connect to duckDB
-    # TODO: Consider moving data folder to top level
     duckdb_uri: str = "duckdb:////app/data_pipeline/data/duckdb/stackoverflow_analysis.db"
 
     # LLM config
